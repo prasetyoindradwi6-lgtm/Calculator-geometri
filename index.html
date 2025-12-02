@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hitung Luas Permukaan — Bangun Ruang</title>
+<style>
+  /* Reset & base */
+  :root{
+    --glass: rgba(255,255,255,0.12);
+    --glass-2: rgba(255,255,255,0.08);
+    --accent: #06b6d4; /* cyan-ish */
+    --muted: rgba(255,255,255,0.85);
+    --card-radius: 16px;
+    --shadow: 0 8px 24px rgba(2,6,23,0.45);
+    --blur: 10px;
+    --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+
+  html,body{height:100%;margin:0;font-family:var(--font-sans);color:var(--muted);-webkit-font-smoothing:antialiased;}
+  body{
+    background-image: url("https://4.bp.blogspot.com/-RDJHGgXNaTM/V9ZB_w4I6zI/AAAAAAAAABI/ZNI628mA1tEp_Czvg2GUx55a0QpnuwTywCK4B/s1600/1-9-gunung-favorit-jateng.jpg");
+    background-size: cover;
+    background-position: center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px;
+  }
+
+  /* frosted layout */
+  .app {
+    width:100%;
+    max-width:1120px;
+    background: linear-gradient(180deg, rgba(8,12,20,0.55), rgba(8,12,20,0.6));
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    backdrop-filter: blur(var(--blur));
+    border: 1px solid rgba(255,255,255,0.06);
+    display:grid;
+    grid-template-columns: 420px 1fr;
+    gap:24px;
+    padding:24px;
+  }
+
+  /* logo top-right fixed inside container */
+  .logo {
+    position: absolute;
+    right: 40px;
+    top: 28px;
+    z-index: 8;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    padding:8px 12px;
+    border-radius: 999px;
+    border:1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(6px);
+  }
+  .logo img{height:44px; width:auto; display:block;}
+
+  /* left panel controls */
+  .controls {
+    padding:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: 12px;
+    border:1px solid rgba(255,255,255,0.04);
+  }
+  h2{margin:6px 0 10px 0; color: #ffffff; font-size:20px;}
+  p.lead{margin:0 0 14px 0; color:rgba(255,255,255,0.8); font-size:13px}
+
+  .shape-list{display:grid; gap:8px; margin-bottom:12px;}
+  .shape-btn{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.06);
+    padding:10px 12px;
+    border-radius:10px;
+    color:var(--muted);
+    text-align:left;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    transition:all .18s ease;
+  }
+  .shape-btn:hover{transform:translateY(-4px); box-shadow: 0 8px 20px rgba(2,6,23,0.4);}
+  .shape-btn.active{background:linear-gradient(90deg, rgba(6,182,212,0.12), rgba(6,182,212,0.06)); border-color: rgba(6,182,212,0.18); color:#fff;}
+
+  .inputs { margin-top:12px; display:grid; gap:10px; }
+  .row{display:flex; gap:8px;}
+  label{font-size:13px;color:rgba(255,255,255,0.85)}
+  input[type="number"]{
+    width:100%;
+    background: rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,0.04);
+    padding:10px 12px;
+    border-radius:8px;
+    color:#fff;
+    font-size:14px;
+    outline:none;
+  }
+  .hint{font-size:12px;color:rgba(255,255,255,0.6)}
+
+  .actions{display:flex; gap:8px; margin-top:12px;}
+  .btn{
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    border: none;
+    font-weight:600;
+    letter-spacing:.2px;
+  }
+  .btn.primary{background:linear-gradient(90deg,var(--accent), #0ea5b8); color:#042; color:white; box-shadow:0 8px 20px rgba(6,182,212,0.14)}
+  .btn.ghost{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted)}
+
+  /* right panel result */
+  .result {
+    padding:18px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.04);
+    min-height:380px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:12px;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+  .res-title{font-size:16px; color:#fff; margin:0 0 6px 0}
+  .res-val{font-size:22px; font-weight:700;color:var(--accent)}
+  pre{
+    background: rgba(0,0,0,0.25);
+    padding:10px;
+    border-radius:8px;
+    overflow:auto;
+    color: #e6f6f7;
+    font-size:13px;
+    margin:0;
+  }
+
+  footer.small{font-size:12px;color:rgba(255,255,255,0.6); margin-top:auto}
+
+  /* responsive */
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr; padding:16px;}
+    .logo{right:16px; top:12px;}
+  }
+
+</style>
+</head>
+<body>
+  <!-- logo PU (kanan atas) -->
+  <div class="logo" title="President University">
+    <img src="https://tse2.mm.bing.net/th/id/OIP.7hBtvGoCMiSbIa4wNIA2-gHaIS?pid=Api&P=0&h=180".replace(" ","") alt="Logo PU" onerror="this.style.display='none'">
+    <div style="font-size:13px;color:rgba(255,255,255,0.9)">President University</div>
+  </div>
+
+  <main class="app" role="main" aria-label="Aplikasi hitung luas permukaan bangun ruang">
+    <section class="controls" aria-hidden="false">
+      <h2>Hitung Luas Permukaan — Bangun Ruang</h2>
+      <p class="lead">Pilih bangun, isi parameter (dalam satuan apa saja), lalu tekan <strong>Hitung</strong>. Hasil ditampilkan beserta langkah ringkas.</p>
+
+      <div class="shape-list" id="shapeList">
+        <button class="shape-btn active" data-shape="kubus">📦 Kubus</button>
+        <button class="shape-btn" data-shape="balok">⬛ Balok</button>
+        <button class="shape-btn" data-shape="tabung">🟣 Tabung</button>
+        <button class="shape-btn" data-shape="bola">⚪ Bola</button>
+        <button class="shape-btn" data-shape="kerucut">🔺 Kerucut</button>
+        <button class="shape-btn" data-shape="limas">▲ Limas segiempat beraturan</button>
+      </div>
+
+      <div class="inputs card" id="inputsArea">
+        <!-- dynamic inputs here -->
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="calcBtn">Hitung</button>
+        <button class="btn ghost" id="resetBtn">Reset</button>
+      </div>
+      <p class="hint">Catatan: untuk <em>limas</em> kamu dapat memasukkan <strong>tinggi limas</strong> (h) — sistem akan menghitung sisi miring otomatis. Atau masukkan <strong>sisi miring</strong> (s) langsung jika sudah tahu.</p>
+    </section>
+
+    <section class="result" aria-live="polite">
+      <div class="card">
+        <div class="res-title" id="resTitle">Pilih bangun dan tekan "Hitung"</div>
+        <div class="res-val" id="resValue">—</div>
+      </div>
+
+      <div class="card" id="stepsCard" style="display:none">
+        <div style="font-size:14px;color:rgba(255,255,255,0.9);margin-bottom:6px">Langkah / Penjelasan</div>
+        <pre id="stepsText"></pre>
+      </div>
+
+      <div class="card" id="formulaCard" style="display:none">
+        <div style="font-size:13px;color:rgba(255,255,255,0.8)">Rumus yang digunakan:</div>
+        <pre id="formulaText"></pre>
+      </div>
+
+      <footer class="small">Satuan apa saja boleh — hasil akan mengikuti satuan masukan (mis. cm → cm²).</footer>
+    </section>
+  </main>
+
+<script>
+/*
+  Interaktif: semua bangun:
+  - kubus: sisi a -> luas = 6a^2
+  - balok: panjang p, lebar l, tinggi t -> luas = 2(pl + pt + lt)
+  - tabung: jari-jari r, tinggi h -> luas = 2πr(r+h)
+  - bola: r -> luas = 4πr^2
+  - kerucut: r,h -> luas = πr(r + s), s = sqrt(r^2 + h^2)
+  - limas segiempat beraturan: sisi alas a, tinggi limas h (atau sisi miring s)
+      luas = a^2 + 2*a*s  (s = sqrt((a/2)^2 + h^2) jika masukkan h)
+*/
+
+const shapes = {
+  kubus: {
+    title: "Kubus",
+    inputs: [{name:"a", label:"Sisi (a)", placeholder:"mis. 5"}],
+    compute: ({a})=>{
+      const A = 6*a*a;
+      return {
+        value: A,
+        steps: `L = 6 × a²
+L = 6 × ${a}² = ${A}`,
+        formula: "L = 6 × a²"
+      };
+    }
+  },
+  balok: {
+    title: "Balok",
+    inputs: [
+      {name:"p", label:"Panjang (p)", placeholder:"mis. 8"},
+      {name:"l", label:"Lebar (l)", placeholder:"mis. 5"},
+      {name:"t", label:"Tinggi (t)", placeholder:"mis. 3"}
+    ],
+    compute: ({p,l,t})=>{
+      const A = 2*(p*l + p*t + l*t);
+      return {
+        value: A,
+        steps: `L = 2(pl + pt + lt)
+L = 2(${p}×${l} + ${p}×${t} + ${l}×${t}) = ${A}`,
+        formula: "L = 2(pl + pt + lt)"
+      };
+    }
+  },
+  tabung: {
+    title: "Tabung",
+    inputs: [
+      {name:"r", label:"Jari-jari (r)", placeholder:"mis. 4"},
+      {name:"h", label:"Tinggi (h)", placeholder:"mis. 10"}
+    ],
+    compute: ({r,h})=>{
+      const A = 2*Math.PI*r*(r + h);
+      return {
+        value: round(A,4),
+        steps: `L = 2πr(r + h)
+L = 2×π×${r}×(${r} + ${h})
+L ≈ ${round(2*Math.PI*r*(r+h),6)}`,
+        formula: "L = 2πr(r + h)"
+      };
+    }
+  },
+  bola: {
+    title: "Bola",
+    inputs: [{name:"r", label:"Jari-jari (r)", placeholder:"mis. 6"}],
+    compute: ({r})=>{
+      const A = 4*Math.PI*r*r;
+      return {
+        value: round(A,4),
+        steps: `L = 4πr²
+L = 4×π×${r}²
+L ≈ ${round(4*Math.PI*r*r,6)}`,
+        formula: "L = 4πr²"
+      };
+    }
+  },
+  kerucut: {
+    title: "Kerucut",
+    inputs: [
+      {name:"r", label:"Jari-jari (r)", placeholder:"mis. 3"},
+      {name:"h", label:"Tinggi (h)", placeholder:"mis. 4"}
+    ],
+    compute: ({r,h})=>{
+      const s = Math.sqrt(r*r + h*h);
+      const A = Math.PI*r*(r + s);
+      return {
+        value: round(A,4),
+        steps: `s = √(r² + h²) = √(${r}² + ${h}²) = ${round(s,6)}
+L = πr(r + s) ≈ π×${r}×(${r} + ${round(s,6)}) ≈ ${round(A,6)}`,
+        formula: "L = πr(r + s), dengan s = √(r² + h²)"
+      };
+    }
+  },
+  limas: {
+    title: "Limas segiempat beraturan",
+    inputs: [
+      {name:"a", label:"Sisi alas (a)", placeholder:"mis. 6"},
+      {name:"h", label:"Tinggi limas (h) — atau kosongkan jika tahu sisi miring (s)", placeholder:"mis. 5"},
+      {name:"s", label:"Sisi miring (s) — opsional", placeholder:"mis. 6"}
+    ],
+    compute: ({a,h,s})=>{
+      let sUsed = s;
+      if (!sUsed || sUsed<=0) {
+        // compute slant from h: s = sqrt((a/2)^2 + h^2)
+        sUsed = Math.sqrt((a/2)*(a/2) + h*h);
+      }
+      const A = a*a + 2*a*sUsed;
+      return {
+        value: round(A,4),
+        steps: `Jika s = ${round(sUsed,6)} (sisi miring),
+L = a² + 2 a s = ${a}² + 2×${a}×${round(sUsed,6)} = ${round(A,6)}`,
+        formula: "L = a² + 2 a s  (s = sisi miring; jika diberi tinggi h maka s = √((a/2)² + h²))"
+      };
+    }
+  }
+};
+
+function round(x,n=4){ return Math.round(x * Math.pow(10,n))/Math.pow(10,n); }
+
+/* UI wiring */
+const shapeListEl = document.getElementById('shapeList');
+const inputsArea = document.getElementById('inputsArea');
+const calcBtn = document.getElementById('calcBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resTitle = document.getElementById('resTitle');
+const resValue = document.getElementById('resValue');
+const stepsCard = document.getElementById('stepsCard');
+const stepsText = document.getElementById('stepsText');
+const formulaCard = document.getElementById('formulaCard');
+const formulaText = document.getElementById('formulaText');
+
+let current = 'kubus';
+
+function renderInputs(shapeKey){
+  const meta = shapes[shapeKey];
+  inputsArea.innerHTML = '';
+  const title = document.createElement('div');
+  title.style.fontSize='14px';
+  title.style.color='white';
+  title.style.marginBottom='6px';
+  title.textContent = meta.title;
+  inputsArea.appendChild(title);
+
+  meta.inputs.forEach(inp=>{
+    const wrapper = document.createElement('div');
+    wrapper.style.display='grid';
+    wrapper.style.gap='6px';
+    wrapper.style.marginBottom='6px';
+    const label = document.createElement('label');
+    label.textContent = inp.label;
+    const el = document.createElement('input');
+    el.type = 'number';
+    el.step = 'any';
+    el.placeholder = inp.placeholder;
+    el.id = 'in_'+inp.name;
+    el.dataset.name = inp.name;
+    wrapper.appendChild(label);
+    wrapper.appendChild(el);
+    inputsArea.appendChild(wrapper);
+  });
+
+  // helper hint for limas
+  if (shapeKey === 'limas'){
+    const h = document.createElement('div');
+    h.className='hint';
+    h.textContent = 'Jika sudah tahu sisi miring (s), isi s. Jika tidak, isi tinggi limas (h) agar sistem menghitung sisi miring otomatis.';
+    inputsArea.appendChild(h);
+  }
+}
+
+shapeListEl.addEventListener('click', e=>{
+  const btn = e.target.closest('.shape-btn');
+  if (!btn) return;
+  document.querySelectorAll('.shape-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  current = btn.dataset.shape;
+  renderInputs(current);
+  // reset result display
+  resTitle.textContent = `Siap menghitung: ${shapes[current].title}`;
+  resValue.textContent = '—';
+  stepsCard.style.display='none';
+  formulaCard.style.display='none';
+});
+
+// initial render
+renderInputs(current);
+resTitle.textContent = `Siap menghitung: ${shapes[current].title}`;
+
+function readInputs(shapeKey){
+  const meta = shapes[shapeKey];
+  const vals = {};
+  for (const inp of meta.inputs){
+    const el = document.getElementById('in_'+inp.name);
+    const v = el && el.value !== '' ? parseFloat(el.value) : NaN;
+    vals[inp.name] = v;
+  }
+  return vals;
+}
+
+calcBtn.addEventListener('click', ()=>{
+  const vals = readInputs(current);
+  // validation: require positive numbers for mandatory fields
+  const meta = shapes[current];
+  // Check required: at least one input should be provided and positive
+  let missing = false;
+  for (const inp of meta.inputs){
+    // For limas, s optional if h present -> we'll just allow NaN for s
+    if (current === 'limas' && inp.name === 's') continue;
+    const v = vals[inp.name];
+    if (isNaN(v) || v <= 0){
+      missing = true;
+      break;
+    }
+  }
+  // special: limas allows s optional if h present
+  if (current === 'limas'){
+    // a is mandatory
+    if (isNaN(vals.a) || vals.a <= 0) missing = true;
+    // either h >0 or s >0 must exist
+    if ((isNaN(vals.h) || vals.h <= 0) && (isNaN(vals.s) || vals.s <= 0)) missing = true;
+  }
+
+  if (missing){
+    alert('Isi semua nilai yang diperlukan dengan angka positif. (Untuk limas, isi sisi alas (a) dan salah satu dari tinggi (h) atau sisi miring (s).)');
+    return;
+  }
+
+  // when s may be NaN, pass as-is to compute which handles it
+  const result = meta.compute(vals);
+  resTitle.textContent = `${meta.title} — Luas Permukaan`;
+  resValue.textContent = `${result.value} (satuan²)`;
+  stepsCard.style.display='block';
+  stepsText.textContent = result.steps;
+  formulaCard.style.display='block';
+  formulaText.textContent = result.formula;
+});
+
+// reset
+resetBtn.addEventListener('click', ()=>{
+  document.querySelectorAll('input[type="number"]').forEach(i=>i.value='');
+  resTitle.textContent = `Siap menghitung: ${shapes[current].title}`;
+  resValue.textContent = '—';
+  stepsCard.style.display='none';
+  formulaCard.style.display='none';
+});
+</script>
+</body>
+</html>
